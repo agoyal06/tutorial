@@ -1,0 +1,19 @@
+from pylada.crystal import read
+from pylada.vasp import Vasp
+###################################
+
+structure=read.poscar(path='../poscars/POSCAR')
+
+vasp=Vasp()
+vasp.program = '$HOME/bin/vasp'
+
+pseudoDir = '$HOME/software/pseudos'
+vasp.add_specie = "Si", pseudoDir + "/Si"
+
+vasp.encut= 340.
+vasp.ismear=0
+vasp.sigma=0.02
+vasp.kpoints = "\n0\nAuto\n20"
+
+result=vasp(structure)
+print result.total_energy

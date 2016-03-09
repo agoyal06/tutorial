@@ -1,0 +1,81 @@
+
+## Importing relevant objects
+from pylada.vasp.relax import Relax
+from pylada.crystal import read
+######################################
+
+## Setting the functional
+vasp=Relax()
+
+vasp.program = '$HOME/bin/vasp'
+pseudoDir = '$HOME/software/pseudos'
+vasp.add_specie = "Si", pseudoDir + "/Si"
+
+vasp.encut   = 340.
+vasp.isym    = 1
+vasp.ismear  = 0
+vasp.sigma   = 0.02
+vasp.kpoints = "\n0\nAuto\n50"
+vasp.ediff   = 1e-6
+vasp.lwave   = True
+vasp.lorbit  = 10
+
+vasp.relaxation = "volume ionic cellshape"
+""" Degrees of freedom to relax. """
+
+vasp.maxiter = 10
+""" Maximum number of iterations before bailing out. """
+
+vasp.keep_steps = True
+""" Whether to keep or delete intermediate steps. """
+
+vasp.first_trial = { "kpoints": "\n0\nAuto\n10", "encut": 0.9 }
+""" parameter to override during first relaxation step. """
+
+## Setting up the structures
+from glob import iglob
+
+mag_conf={'ferro':[1.,1.],'anti-ferro':[1.,-1.]}
+
+names_structures = {}
+
+for poscar in iglob('../poscars/POSCAR*'):
+    for mc in mag_conf.keys():
+
+        structure = read.poscar(poscar)
+
+        for i in range(len(mag_conf[mc])):
+            structure[i].spin=mag_conf[mc][i]
+
+        name = 'Si_'+mc
+
+        names_structures[name]=structure
+
+## Setting the jobfolder
+from pylada.jobfolder import JobFolder
+from copy import deepcopy
+
+## Job dictionary.
+jobfolder = JobFolder()
+
+## Loop over names, structures
+for name, structure in names_structures.items():
+
+    # job folder for this lattice.
+    job = jobfolder / name
+    vasp_individual = deepcopy(vasp)
+
+    vasp_individual.ispin=2
+
+    magmom=''
+    for atom in structure:
+        magmom=magmom+'%s  ' %(atom.spin)
+    vasp_individual.magmom=magmom
+
+    job.functional = vasp_individual
+    job.params["structure"] = structure
+
+## Saving into a "pickle" file and launching
+%load_ext pylada
+%savefolders pickle jobfolder
+%launch scattered --account=NRELMatDB --walltime=00:30:00 --nbprocs=24 --ppn=24 --queue=debug

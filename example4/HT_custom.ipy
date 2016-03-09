@@ -1,0 +1,58 @@
+
+# Importing the customized chained workflow
+from custom_chain import CustomChain
+from pylada.vasp import Extract
+######################################################
+
+## Defining the Vasp functional
+from pylada.vasp import Vasp
+
+vasp = Vasp()
+vasp.program = '/home/vstevano/bin/vasp'
+pseudoDir = '/home/vstevano/software/pseudos'
+vasp.add_specie = "Si", pseudoDir + "/Si"
+
+vasp.prec       = "accurate"
+vasp.ediff      = 1.0e-5
+vasp.encut      = 340.0
+vasp.ismear     = 0
+vasp.sigma      = 0.02
+vasp.lwave      = True
+vasp.lmaxmix    = 4
+vasp.lpead      = True
+vasp.lplane     = True
+vasp.addgrid    = True
+vasp.lorbit     = 10
+vasp.kpoints    = "\n0\nAuto\n20"
+
+
+## Defining the folder names and associated structure files
+from glob import iglob
+from pylada.crystal import read
+
+names_structures = {}
+
+for poscar in iglob('../poscars/POSCAR*'):
+    for i in range(2):
+        names_structures['Si_%s' % i] = read.poscar(poscar)
+
+## Defining the jobs
+from copy import deepcopy
+from pylada.jobfolder import JobFolder
+
+## Job dictionary.
+jobfolder = JobFolder()
+
+for name, structure in names_structures.items():
+    job = jobfolder / name
+
+    vasp_individual=deepcopy(vasp)
+#    vasp_individual.restart=Extract('restart_folder/wfn/')	
+
+    job.functional = CustomChain(vaspobj=vasp_individual)
+    job.params["structure"] = deepcopy(structure)
+
+## Saving into a "pickle" file and launching
+%load_ext pylada
+%savefolders pickle jobfolder
+%launch scattered --account=NRELMatDB --walltime=00:30:00 --nbprocs=24 --ppn=24 --queue=debug

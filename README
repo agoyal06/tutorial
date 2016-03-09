@@ -1,0 +1,134 @@
+This is the set of examples aimed at introducing 
+high-throughput calculations with pylada
+
+------------------
+Before starting:
+-------------------
+
+1) Edit you .bashrc and copy the following line
+
+source /projects/NRELMatDB/pylada-light/pylada-light/peregrine-env.sh
+
+   This will set you up with an existing pylada installation
+
+alternatively add to your .bashrc:
+
+module load python
+. /home/vstevano/software/virt_env/bin/activate
+
+
+2) Create somewhere a folder that will serve to pur  your custom_chains 
+   and add it to the PYTHONPATH environment variable in the .bashrc
+
+export PYTHONPATH=$PYTHONPATH:/some/folder/somewhere 
+
+3) Copy dot_pylada into your home/directory/.pylada
+
+4) Edit the .pylada and change YOUR_USER_NAME in line 14 with your actual user name
+
+5) Copy ipython_config.py into your home/directory/.ipython/profile_default/ipython_config.py
+
+6) You are ready to go! 
+
+7) See http://pylada.github.io/pylada-light/ for more information.  Warning: some of the documentation is out of date
+and does not work "line-by-line".  All the concepts are unchanged.  The content of these tutorial examples (which 
+do work "line-by-line" with the present pylada-light version) will soon be 
+part of the pylada-light docs found online (but not yet).  
+
+------------------
+example1:
+------------------
+
+This is an example demonstrates basic use of pylada to launch
+VASP calculation in a serial fashion
+
+The code reads in the structure from the POSCAR file located in the
+"../poscars/" folder, sets uop the Vasp functional object, 
+executes VASP, and returns the Extract object (i.e. the result), which 
+can then be used to query various quantities from the output.
+
+At any given moment if one wants to query the results:
+
+>>> ipython
+>>> from pylada import vasp
+>>> extract_object=vasp.MassExtract('./')
+>>> dir(extract_object) 
+
+------------------
+example1:
+------------------
+
+The same as example1 just shows how to execute VASP as a regular 
+parallel job. Check for the differences in the execution line.
+
+Note, this way of executing VASP will not write and submit the PBS
+script! 
+
+This exercise can either be executed by putting in an existing 
+PBS script (see the PBS file in the folder):
+
+>>> qsub pbs
+
+Or through an interactive session by:
+
+>>> qsub -A "YOUR_ACCOUNT" -l walltime=00:30:00 -l nodes=1:ppn=24 -q debug -I
+>>> ipython parallel.ipy
+
+or:
+
+>>> ipython
+>>> run parallel.ipy
+
+------------------
+example3:
+------------------
+
+example3 introduces the Hight-throuhput calculations with pylada.
+The HT_relax.ipy script has three parts:
+
+1) setting up the functional - where the preprogrammed Relax functional
+   (derived from the Vasp used in the previous example) is created. Relax is
+   specifically constructed for the relaxations runs.
+
+2) setting up the structures - where the structures are created and 
+   manipulated 
+
+3) setting up the jobfolder - where the HT workflow is organized
+
+At the end the "pickle" file, continaing all the necessary info, is written
+and the calculations are launched to the queue batch system. Note that if the
+--nbprocs is not included in the launch, pylada will calculate the number of
+cores needed from the number of atoms and processors per node (--ppn). The idea 
+is to approach (from below) as close as possible to the nbprocs=natoms while using 
+only the full nodes.
+
+------------------
+example4:
+------------------
+
+Custom bulding of the chained calculations. There are two scripts
+two part:
+
+1) The custom_chain.py that contains details of your workflow. 
+
+2) The HT_custom.ipy that imports the CustomChain() python class
+   from the custom_chain.py, sets up the structures and the 
+   jobfolder workflow
+
+3) copy the custom_chain.py to some location you created previously 
+   and added to yout PYTHONPATH variable
+
+Execution is performed as:
+
+>>> ipython HT_custom.ipy
+
+or:
+
+>>> ipython
+>>> run HT_custom.ipy
+
+------------------
+example5:
+------------------
+
+The same as example4 just more specific to the GW calculations.

@@ -1,0 +1,95 @@
+
+yum install openssl-devel.x86_64
+yum install tkinter.x86_64
+yum install blas-devel.x86_64
+yum install lapack-devel.x86_64
+yum install freetype-devel.x86_64
+yum install libpng-devel.x86_64
+yum install sqlite-devel.x86_64
+yum install gtk+extra-devel.i686
+yum install tk-devel.x86_64
+yum install PyQt4-devel.x86_64
+yum install pygtk2-devel.x86_64
+
+build zlib (www.zlib.net)
+###########################
+
+build python 2.7.6:
+###########################################################
+./configure --enable-shared --prefix=/home/vstevano/local/
+make 
+make install
+
+Write in the ~/.bashrc:
+#######################
+export PATH=/home/vstevano/local/bin:$PATH
+export LD_LIBRARY_PATH=/home/vstevano/local/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=/home/vstevano/local:$PYTHONPATH
+
+build setup tools wget:
+##########################
+wget --no-check-certificate https://bootstrap.pypa.io/ez_setup.py -O - | python
+
+easy_install numpy
+easy_install scipy
+easy_install readline
+easy-install pysqlite
+easy-install ipython
+easy-install matplotlib
+
+#################### DONE WITH PYTHON ####################
+
+################### NOW PYLADA ##########################
+
+setting up git
+#########################
+
+1) create an account on github.org
+
+2) generate the SSH key
+
+   - goto sttings
+   - Add SSH key
+   - click "generating SSH keys" link and follow the instructions
+
+3) set up git on your computer
+
+   >git config --global user.name "vstevano"
+   >git config --global user.email "vladan.stevanovic.epfl@gmail.com"
+
+pylada dependencies
+#########################
+
+download cmake 2.8 (http://www.cmake.org/cmake/resources/software.html)
+##########
+
+./bootstrap --prefix=local_folder
+make 
+make install
+
+install boost headers
+#########
+
+yum install boost-devel.x86_64
+
+install eigen3 (http://eigen.tuxfamily.org/index.php?title=Main_Page)
+#########
+
+read the INSTALL file (cmake -DCMAKE_INSTALL_PREFIX=/home/vstevano/local/ ../)
+
+install python quantities
+########
+easy_install quantities
+
+pylada
+#########
+
+>git clone https://github.com/pylada/pylada-light
+>cd pylada-light
+>mkdir build
+>cd build
+>cmake -DCMAKE_INSTALL_PREFIX=/home/vstevano/local/ ../
+>make
+>make install
+
+DONE!!!!
